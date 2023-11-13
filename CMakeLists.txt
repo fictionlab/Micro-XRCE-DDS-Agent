@@ -23,6 +23,7 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 option(UAGENT_SUPERBUILD "Enable superbuild compilation." ON)
 option(UAGENT_BUILD_TESTS "Build tests." OFF)
 option(UAGENT_INSTALLER "Build Windows installer." OFF)
+option(UAGENT_DEB_PACKAGE "Build Debian package." OFF)
 option(UAGENT_ISOLATED_INSTALL "Install the project and dependencies into separated folders with version control." OFF)
 option(UAGENT_USE_INTERNAL_GTEST "Enable internal GTest libraries." OFF)
 option(BUILD_SHARED_LIBS "Control shared/static building." ON)
@@ -600,6 +601,29 @@ if(WIN32 AND UAGENT_INSTALLER AND UAGENT_BUILD_EXECUTABLE)
 
     # Update CMAKE_MODULE_PATH to find NSIS.template.in
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/packaging/windows)
+
+    include(CPack)
+
+elseif(UAGENT_DEB_PACKAGE AND UAGENT_BUILD_EXECUTABLE)
+    # Set product name.
+    set(PRODUCT_NAME_SHORT "MicroXRCEAgent")
+    set(PRODUCT_NAME_LONG "Micro XRCE-DDS Agent")
+
+    set(CPACK_GENERATOR DEB)
+
+    # Setup generic options.
+    set(CPACK_PACKAGE_NAME ${PRODUCT_NAME_SHORT})
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ implementarion of XRCE Root")
+    set(CPACK_PACKAGE_DESCRIPTION "eProsima ${PRODUCT_NAME_SHORT} is a executable which implement the XRCE Root functionality.")
+    set(CPACK_PACKAGE_VENDOR "eProsima")
+    set(CPACK_PACKAGE_CONTACT "eProsima Support <support@eprosima.com>")
+    set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_MAJOR_VERSION})
+    set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_MINOR_VERSION})
+    set(CPACK_PACKAGE_VERSION_PATH ${PROJECT_MICRO_VERSION})
+    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+
+    set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
+    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 
     include(CPack)
 endif()
