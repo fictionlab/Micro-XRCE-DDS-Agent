@@ -516,7 +516,7 @@ if(EXISTS ${CMAKE_BINARY_DIR}/temp_install/)
             DIRECTORY
                 ${CMAKE_BINARY_DIR}/temp_install/${_d}$<IF:$<BOOL:${UAGENT_ISOLATED_INSTALL}>,,/>
             DESTINATION
-                ${CMAKE_INSTALL_PREFIX}$<IF:$<BOOL:${UAGENT_ISOLATED_INSTALL}>,/../,>
+                $<IF:$<BOOL:${UAGENT_ISOLATED_INSTALL}>,/../,.>
             COMPONENT
                 ${_d}
             USE_SOURCE_PERMISSIONS
@@ -622,8 +622,13 @@ elseif(UAGENT_DEB_PACKAGE AND UAGENT_BUILD_EXECUTABLE)
     set(CPACK_PACKAGE_VERSION_PATH ${PROJECT_MICRO_VERSION})
     set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 
-    set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
+    set(CPACK_DEBIAN_PACKAGE_RELEASE 2)
     set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+
+    set(CPACK_SET_DESTDIR OFF)
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${CPACK_PACKAGE_NAME}")
+    set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "\${ORIGIN}")
+    set_target_properties(MicroXRCEAgent PROPERTIES INSTALL_RPATH "\${ORIGIN}/../lib")
 
     include(CPack)
 endif()
