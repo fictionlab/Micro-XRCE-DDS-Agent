@@ -51,7 +51,8 @@ enum class CallbackKind : uint8_t
     DELETE_DATAWRITER,
     DELETE_DATAREADER,
     DELETE_REQUESTER,
-    DELETE_REPLIER
+    DELETE_REPLIER,
+    CREATE_TOPIC
 };
 
 /**********************************************************************************************************************
@@ -285,6 +286,7 @@ private:
                     on_create_participant_callbacks_.emplace_back(Callback<Args ...>(std::move(callback_function)));
                     break;
                 }
+                case CallbackKind::CREATE_TOPIC:
                 case CallbackKind::CREATE_DATAWRITER:
                 case CallbackKind::DELETE_DATAWRITER:
                 case CallbackKind::CREATE_DATAREADER:
@@ -366,6 +368,11 @@ private:
                     {
                         on_create_replier_callback(participant, repl_datawriter, req_datareader);
                     }
+                    break;
+                }
+                case CallbackKind::CREATE_TOPIC:
+                {
+                    // Only implemented in FastDDSCallbackFactory
                     break;
                 }
                 case CallbackKind::DELETE_PARTICIPANT:
@@ -539,6 +546,7 @@ private:
                 case CallbackKind::DELETE_REQUESTER:
                 case CallbackKind::CREATE_REPLIER:
                 case CallbackKind::DELETE_REPLIER:
+                case CallbackKind::CREATE_TOPIC:
                 {
                     // Only implemented in template specialization
                     break;
@@ -665,6 +673,15 @@ private:
                     }
                     break;
                 }
+                case CallbackKind::CREATE_TOPIC:
+                {
+                    fastrtps::TopicAttributes* attrs = va_arg(args, fastrtps::TopicAttributes*);
+                    for (const auto& on_create_topic_callback : on_create_topic_callbacks_)
+                    {
+                        on_create_topic_callback(*attrs);
+                    }
+                    break;
+                }
             }
             va_end(args);
         }
@@ -675,6 +692,8 @@ private:
                         const fastdds::dds::DomainParticipant*>;
         using DeleteParticipantCallback = Callback<
                         const fastdds::dds::DomainParticipant*>;
+        using CreateTopicCallback = Callback<
+                        fastrtps::TopicAttributes&>;
         using CreateDataWriterCallback = Callback<
                         const fastdds::dds::DomainParticipant*,
                         const fastdds::dds::DataWriter*>;
@@ -713,6 +732,7 @@ private:
 
         std::vector<CreateParticipantCallback> on_create_participant_callbacks_;
         std::vector<DeleteParticipantCallback> on_delete_participant_callbacks_;
+        std::vector<CreateTopicCallback> on_create_topic_callbacks_;
         std::vector<CreateDataWriterCallback> on_create_datawriter_callbacks_;
         std::vector<DeleteDataWriterCallback> on_delete_datawriter_callbacks_;
         std::vector<CreateDataReaderCallback> on_create_datareader_callbacks_;
@@ -993,6 +1013,27 @@ inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
         }
     }
 }
+
+template <>
+inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
+    fastrtps::TopicAttributes&>(
+        const CallbackKind& callback_kind,
+        std::function<void (fastrtps::TopicAttributes&)>&& callback_function)
+{
+    switch (callback_kind)
+    {
+        case CallbackKind::CREATE_TOPIC:
+        {
+            on_create_topic_callbacks_.emplace_back(Callback<
+                fastrtps::TopicAttributes&>(std::move(callback_function)));
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
 #endif  // UAGENT_FAST_PROFILE
 
 #define CALLBACK_FACTORY_ADD_CALLBACK(MIDDLEWARE, CB_FACTORY, ...) \
@@ -1054,6 +1095,9 @@ CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
     const fastdds::dds::DomainParticipant*,
     const fastdds::dds::DataWriter*,
     const fastdds::dds::DataReader*)
+
+CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
+    fastrtps::TopicAttributes&)
 #endif  // UAGENT_FAST_PROFILE
 
 } // namespace middleware

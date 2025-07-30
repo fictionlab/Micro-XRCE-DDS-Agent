@@ -158,11 +158,14 @@ bool FastDDSMiddleware::create_participant_by_bin(
     return rv;
 }
 
-static
-std::shared_ptr<FastDDSTopic> create_topic(
+std::shared_ptr<FastDDSTopic> FastDDSMiddleware::create_topic(
         std::shared_ptr<FastDDSParticipant>& participant,
-        const fastrtps::TopicAttributes& attrs)
+        fastrtps::TopicAttributes& attrs)
 {
+    callback_factory_.execute_callbacks(Middleware::Kind::FASTDDS,
+                    middleware::CallbackKind::CREATE_TOPIC,
+                    &attrs);
+
     std::shared_ptr<FastDDSTopic> topic = participant->find_local_topic(attrs.getTopicName().c_str());
     if (topic)
     {
@@ -502,8 +505,10 @@ std::shared_ptr<FastDDSRequester> FastDDSMiddleware::create_requester(
         const fastrtps::RequesterAttributes& attrs)
 {
     std::shared_ptr<FastDDSRequester> requester{};
-    std::shared_ptr<FastDDSTopic> request_topic = create_topic(participant, attrs.publisher.topic);
-    std::shared_ptr<FastDDSTopic> reply_topic = create_topic(participant, attrs.subscriber.topic);
+    fastrtps::TopicAttributes request_topic_attrs = attrs.publisher.topic;
+    fastrtps::TopicAttributes reply_topic_attrs = attrs.subscriber.topic;
+    std::shared_ptr<FastDDSTopic> request_topic = create_topic(participant, request_topic_attrs);
+    std::shared_ptr<FastDDSTopic> reply_topic = create_topic(participant, reply_topic_attrs);
     if (request_topic && reply_topic)
     {
         requester =
@@ -634,8 +639,10 @@ std::shared_ptr<FastDDSReplier> FastDDSMiddleware::create_replier(
         const fastrtps::ReplierAttributes& attrs)
 {
     std::shared_ptr<FastDDSReplier> replier{};
-    std::shared_ptr<FastDDSTopic> request_topic = create_topic(participant, attrs.subscriber.topic);
-    std::shared_ptr<FastDDSTopic> reply_topic = create_topic(participant, attrs.publisher.topic);
+    fastrtps::TopicAttributes request_topic_attrs = attrs.subscriber.topic;
+    fastrtps::TopicAttributes reply_topic_attrs = attrs.publisher.topic;
+    std::shared_ptr<FastDDSTopic> request_topic = create_topic(participant, request_topic_attrs);
+    std::shared_ptr<FastDDSTopic> reply_topic = create_topic(participant, reply_topic_attrs);
     if (request_topic && reply_topic)
     {
         replier =

@@ -170,6 +170,9 @@ AGENTINSTANCE_ADD_MW_CB(
     const eprosima::fastdds::dds::DomainParticipant *,
     const eprosima::fastdds::dds::DataWriter *,
     const eprosima::fastdds::dds::DataReader *)
+
+AGENTINSTANCE_ADD_MW_CB(
+    eprosima::fastrtps::TopicAttributes&)
 #endif  // UAGENT_FAST_PROFILE
 
 } // namespace uxr
