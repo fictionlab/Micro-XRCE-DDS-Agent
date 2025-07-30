@@ -679,7 +679,7 @@ private:
                     fastrtps::TopicAttributes* attrs = va_arg(args, fastrtps::TopicAttributes*);
                     for (const auto& pre_create_topic_callback : pre_create_topic_callbacks_)
                     {
-                        pre_create_topic_callback(participant, *attrs);
+                        pre_create_topic_callback(participant, attrs);
                     }
                     break;
                 }
@@ -695,7 +695,7 @@ private:
                         const fastdds::dds::DomainParticipant*>;
         using CreateTopicCallback = Callback<
                         const fastdds::dds::DomainParticipant*,
-                        fastrtps::TopicAttributes&>;
+                        fastrtps::TopicAttributes*>;
         using CreateDataWriterCallback = Callback<
                         const fastdds::dds::DomainParticipant*,
                         const fastdds::dds::DataWriter*>;
@@ -1019,10 +1019,10 @@ inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
 template <>
 inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
     const fastdds::dds::DomainParticipant*,
-    fastrtps::TopicAttributes&>(
+    fastrtps::TopicAttributes*>(
         const CallbackKind& callback_kind,
         std::function<void (const fastdds::dds::DomainParticipant*,
-                            fastrtps::TopicAttributes&)>&& callback_function)
+                            fastrtps::TopicAttributes*)>&& callback_function)
 {
     switch (callback_kind)
     {
@@ -1030,7 +1030,7 @@ inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
         {
             pre_create_topic_callbacks_.emplace_back(Callback<
                 const fastdds::dds::DomainParticipant*,
-                fastrtps::TopicAttributes&>(std::move(callback_function)));
+                fastrtps::TopicAttributes*>(std::move(callback_function)));
             break;
         }
         default:
@@ -1103,7 +1103,7 @@ CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
 
 CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
     const fastdds::dds::DomainParticipant*,
-    fastrtps::TopicAttributes&)
+    fastrtps::TopicAttributes*)
 #endif  // UAGENT_FAST_PROFILE
 
 } // namespace middleware

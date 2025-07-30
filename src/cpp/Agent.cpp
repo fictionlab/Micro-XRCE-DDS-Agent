@@ -695,7 +695,7 @@ AGENT_ADD_MW_CB(
 
 AGENT_ADD_MW_CB(
     const eprosima::fastdds::dds::DomainParticipant *,
-    eprosima::fastrtps::TopicAttributes&)
+    eprosima::fastrtps::TopicAttributes*)
 
 #endif  // UAGENT_FAST_PROFILE
 
