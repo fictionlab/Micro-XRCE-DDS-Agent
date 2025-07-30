@@ -276,6 +276,10 @@ public:
             uint16_t replier_id,
             const dds::xrce::OBJK_Replier_Binary& replier_xrce) const override;
 private:
+    std::shared_ptr<FastDDSTopic> create_topic(
+        std::shared_ptr<FastDDSParticipant>& participant,
+        const fastrtps::TopicAttributes& attrs);
+
     std::shared_ptr<FastDDSRequester> create_requester(
         std::shared_ptr<FastDDSParticipant>& participant,
         const fastrtps::RequesterAttributes& attrs);
