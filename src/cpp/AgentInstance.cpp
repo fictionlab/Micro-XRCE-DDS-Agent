@@ -172,6 +172,7 @@ AGENTINSTANCE_ADD_MW_CB(
     const eprosima::fastdds::dds::DataReader *)
 
 AGENTINSTANCE_ADD_MW_CB(
+    const eprosima::fastdds::dds::DomainParticipant *,
     eprosima::fastrtps::TopicAttributes&)
 #endif  // UAGENT_FAST_PROFILE
 

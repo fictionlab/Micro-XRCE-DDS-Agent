@@ -52,7 +52,7 @@ enum class CallbackKind : uint8_t
     DELETE_DATAREADER,
     DELETE_REQUESTER,
     DELETE_REPLIER,
-    CREATE_TOPIC
+    PRE_CREATE_TOPIC
 };
 
 /**********************************************************************************************************************
@@ -286,7 +286,7 @@ private:
                     on_create_participant_callbacks_.emplace_back(Callback<Args ...>(std::move(callback_function)));
                     break;
                 }
-                case CallbackKind::CREATE_TOPIC:
+                case CallbackKind::PRE_CREATE_TOPIC:
                 case CallbackKind::CREATE_DATAWRITER:
                 case CallbackKind::DELETE_DATAWRITER:
                 case CallbackKind::CREATE_DATAREADER:
@@ -370,7 +370,7 @@ private:
                     }
                     break;
                 }
-                case CallbackKind::CREATE_TOPIC:
+                case CallbackKind::PRE_CREATE_TOPIC:
                 {
                     // Only implemented in FastDDSCallbackFactory
                     break;
@@ -546,7 +546,7 @@ private:
                 case CallbackKind::DELETE_REQUESTER:
                 case CallbackKind::CREATE_REPLIER:
                 case CallbackKind::DELETE_REPLIER:
-                case CallbackKind::CREATE_TOPIC:
+                case CallbackKind::PRE_CREATE_TOPIC:
                 {
                     // Only implemented in template specialization
                     break;
@@ -673,12 +673,13 @@ private:
                     }
                     break;
                 }
-                case CallbackKind::CREATE_TOPIC:
+                case CallbackKind::PRE_CREATE_TOPIC:
                 {
+                    fastdds::dds::DomainParticipant* participant = va_arg(args, fastdds::dds::DomainParticipant*);
                     fastrtps::TopicAttributes* attrs = va_arg(args, fastrtps::TopicAttributes*);
-                    for (const auto& on_create_topic_callback : on_create_topic_callbacks_)
+                    for (const auto& pre_create_topic_callback : pre_create_topic_callbacks_)
                     {
-                        on_create_topic_callback(*attrs);
+                        pre_create_topic_callback(participant, *attrs);
                     }
                     break;
                 }
@@ -693,6 +694,7 @@ private:
         using DeleteParticipantCallback = Callback<
                         const fastdds::dds::DomainParticipant*>;
         using CreateTopicCallback = Callback<
+                        const fastdds::dds::DomainParticipant*,
                         fastrtps::TopicAttributes&>;
         using CreateDataWriterCallback = Callback<
                         const fastdds::dds::DomainParticipant*,
@@ -732,7 +734,7 @@ private:
 
         std::vector<CreateParticipantCallback> on_create_participant_callbacks_;
         std::vector<DeleteParticipantCallback> on_delete_participant_callbacks_;
-        std::vector<CreateTopicCallback> on_create_topic_callbacks_;
+        std::vector<CreateTopicCallback> pre_create_topic_callbacks_;
         std::vector<CreateDataWriterCallback> on_create_datawriter_callbacks_;
         std::vector<DeleteDataWriterCallback> on_delete_datawriter_callbacks_;
         std::vector<CreateDataReaderCallback> on_create_datareader_callbacks_;
@@ -1016,15 +1018,18 @@ inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
 
 template <>
 inline void CallbackFactory::FastDDSCallbackFactory::add_callback<
+    const fastdds::dds::DomainParticipant*,
     fastrtps::TopicAttributes&>(
         const CallbackKind& callback_kind,
-        std::function<void (fastrtps::TopicAttributes&)>&& callback_function)
+        std::function<void (const fastdds::dds::DomainParticipant*,
+                            fastrtps::TopicAttributes&)>&& callback_function)
 {
     switch (callback_kind)
     {
-        case CallbackKind::CREATE_TOPIC:
+        case CallbackKind::PRE_CREATE_TOPIC:
         {
-            on_create_topic_callbacks_.emplace_back(Callback<
+            pre_create_topic_callbacks_.emplace_back(Callback<
+                const fastdds::dds::DomainParticipant*,
                 fastrtps::TopicAttributes&>(std::move(callback_function)));
             break;
         }
@@ -1097,6 +1102,7 @@ CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
     const fastdds::dds::DataReader*)
 
 CALLBACK_FACTORY_ADD_FASTDDS_CALLBACK(
+    const fastdds::dds::DomainParticipant*,
     fastrtps::TopicAttributes&)
 #endif  // UAGENT_FAST_PROFILE
 

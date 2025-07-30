@@ -278,7 +278,7 @@ public:
 private:
     std::shared_ptr<FastDDSTopic> create_topic(
         std::shared_ptr<FastDDSParticipant>& participant,
-        fastrtps::TopicAttributes& attrs);
+        const fastrtps::TopicAttributes& attrs);
 
     std::shared_ptr<FastDDSRequester> create_requester(
         std::shared_ptr<FastDDSParticipant>& participant,
