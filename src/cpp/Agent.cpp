@@ -18,6 +18,10 @@
 #include <uxr/agent/datawriter/DataWriter.hpp>
 #include <uxr/agent/middleware/utils/Callbacks.hpp>
 
+#ifdef UAGENT_FAST_PROFILE
+#include <fastrtps/attributes/TopicAttributes.h>
+#endif
+
 namespace eprosima {
 namespace uxr {
 
@@ -688,6 +692,11 @@ AGENT_ADD_MW_CB(
     const eprosima::fastdds::dds::DomainParticipant *,
     const eprosima::fastdds::dds::DataWriter *,
     const eprosima::fastdds::dds::DataReader *)
+
+AGENT_ADD_MW_CB(
+    const eprosima::fastdds::dds::DomainParticipant *,
+    eprosima::fastrtps::TopicAttributes*)
+
 #endif  // UAGENT_FAST_PROFILE
 
 } // namespace uxr
